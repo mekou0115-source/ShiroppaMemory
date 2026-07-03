@@ -1,152 +1,426 @@
-const game = document.getElementById("game");
-const score = document.getElementById("score");
-const result = document.getElementById("result");
-const restart = document.getElementById("restart");
-
 const images = [
     "card1.png",
     "card2.png",
     "card3.png",
     "card4.png",
     "card5.png",
-    "card6.png"
+    "card6.png",
+    "card7.png",
+    "card8.png"
 ];
+
+const titleScreen = document.getElementById("titleScreen");
+const howScreen = document.getElementById("howScreen");
+const gameScreen = document.getElementById("gameScreen");
+const resultScreen = document.getElementById("resultScreen");
+
+const startButton = document.getElementById("startButton");
+const howButton = document.getElementById("howButton");
+
+const backTitle1 = document.getElementById("backTitle1");
+const backTitle2 = document.getElementById("backTitle2");
+const backTitle3 = document.getElementById("backTitle3");
+
+const restartButton = document.getElementById("restart");
+const playAgainButton = document.getElementById("playAgain");
+
+const game = document.getElementById("game");
+
+const scoreDisplay = document.getElementById("score");
+const triesDisplay = document.getElementById("tries");
+const timerDisplay = document.getElementById("timer");
+
+const finalTime = document.getElementById("finalTime");
+const finalTry = document.getElementById("finalTry");
+
+const rankDisplay = document.getElementById("rank");
+const bestTimeDisplay = document.getElementById("bestTime");
+const bestTryDisplay = document.getElementById("bestTry");
+
+const bgm = document.getElementById("bgm");
+const flipSound = document.getElementById("flipSound");
+const matchSound = document.getElementById("matchSound");
+
+let cards = [];
 
 let firstCard = null;
 let secondCard = null;
-let lock = false;
-let pairs = 0;
 
-function shuffle(array) {
-    return array.sort(() => Math.random() - 0.5);
+let lockBoard = false;
+
+let matchedPairs = 0;
+let tries = 0;
+
+let timer = 0;
+let timerInterval = null;
+
+function showScreen(screen){
+
+    titleScreen.classList.add("hidden");
+    howScreen.classList.add("hidden");
+    gameScreen.classList.add("hidden");
+    resultScreen.classList.add("hidden");
+
+    screen.classList.remove("hidden");
 }
 
-function createBoard() {
+function shuffle(array){
 
-    game.innerHTML = "";
-    result.classList.add("hidden");
+    for(let i=array.length-1;i>0;i--){
 
-    pairs = 0;
-    score.textContent = "0";
+        const j=Math.floor(Math.random()*(i+1));
 
-    firstCard = null;
-    secondCard = null;
-    lock = false;
+        [array[i],array[j]]=[array[j],array[i]];
+    }
 
-    const cards = shuffle([...images, ...images]);
+    return array;
+}
 
-    cards.forEach(image => {
+function formatTime(seconds){
 
-        const card = document.createElement("div");
-        card.className = "card";
+    const min=Math.floor(seconds/60);
+    const sec=seconds%60;
 
-        card.dataset.image = image;
-        card.dataset.open = "false";
-        card.dataset.clear = "false";
+    return (
+        String(min).padStart(2,"0") +
+        ":" +
+        String(sec).padStart(2,"0")
+    );
+}
 
-        const back = document.createElement("div");
-        back.className = "back";
-        back.textContent = "?";
+function startTimer(){
 
-        card.appendChild(back);
+    clearInterval(timerInterval);
 
-        card.addEventListener("click", () => clickCard(card));
+    timer=0;
+
+    timerDisplay.textContent="00:00";
+
+    timerInterval=setInterval(()=>{
+
+        timer++;
+
+        timerDisplay.textContent=formatTime(timer);
+
+    },1000);
+}
+
+function stopTimer(){
+
+    clearInterval(timerInterval);
+}
+
+function createBoard(){
+
+    game.innerHTML="";
+
+    const deck=[...images,...images];
+
+    shuffle(deck);
+
+    cards=[];
+
+    deck.forEach(imageName=>{
+
+        const card=document.createElement("div");
+
+        card.className="card";
+
+        card.dataset.image=imageName;
+
+        card.innerHTML=`
+            <div class="back">?</div>
+        `;
+
+        card.addEventListener("click",flipCard);
 
         game.appendChild(card);
 
-    });
+        cards.push(card);
 
+    });
 }
 
-function clickCard(card){
+function flipCard(){
 
-    if(lock) return;
+    if(lockBoard) return;
 
-    if(card.dataset.open==="true") return;
+    if(this===firstCard) return;
 
-    if(card.dataset.clear==="true") return;
+    if(this.classList.contains("matched")) return;
 
-    openCard(card);
+    flipSound.currentTime = 0;
+    flipSound.play();
 
-    if(firstCard===null){
+    this.classList.add("flip");
 
-        firstCard=card;
+    const imageName=this.dataset.image;
+
+    this.innerHTML=`
+        <img src="images/${imageName}">
+    `;
+
+    if(!firstCard){
+
+        firstCard=this;
+
         return;
-
     }
 
-    secondCard=card;
+    secondCard=this;
 
-    lock=true;
+    lockBoard=true;
 
-    if(firstCard.dataset.image===secondCard.dataset.image){
+    tries++;
 
-        firstCard.dataset.clear="true";
-        secondCard.dataset.clear="true";
+    triesDisplay.textContent=tries;
 
-        pairs++;
+    checkMatch();
+}
 
-        score.textContent=pairs;
+function checkMatch(){
 
-        firstCard=null;
-        secondCard=null;
+    const isMatch =
+        firstCard.dataset.image ===
+        secondCard.dataset.image;
 
-        lock=false;
+    if(isMatch){
 
-        if(pairs===6){
+        matchSound.currentTime = 0;
+        matchSound.play();
 
-            result.classList.remove("hidden");
+        firstCard.classList.add("matched");
+        secondCard.classList.add("matched");
 
+        matchedPairs++;
+
+        scoreDisplay.textContent = matchedPairs;
+
+        resetTurn();
+
+        if(matchedPairs === 8){
+
+            setTimeout(()=>{
+
+                finishGame();
+
+            },600);
         }
 
     }else{
 
         setTimeout(()=>{
 
-            closeCard(firstCard);
-            closeCard(secondCard);
+            firstCard.classList.remove("flip");
+            secondCard.classList.remove("flip");
 
-            firstCard=null;
-            secondCard=null;
+            firstCard.innerHTML =
+                '<div class="back">?</div>';
 
-            lock=false;
+            secondCard.innerHTML =
+                '<div class="back">?</div>';
+
+            resetTurn();
 
         },1000);
+    }
+}
 
+function resetTurn(){
+
+    firstCard = null;
+    secondCard = null;
+    lockBoard = false;
+}
+
+function getRank(){
+
+    if(tries <= 15){
+        return "S";
     }
 
+    if(tries <= 20){
+        return "A";
+    }
+
+    if(tries <= 25){
+        return "B";
+    }
+
+    return "C";
 }
 
-function openCard(card){
+function updateBestRecord(){
 
-    card.dataset.open="true";
+    let bestTime =
+        localStorage.getItem("bestTime");
 
-    card.innerHTML="";
+    let bestTry =
+        localStorage.getItem("bestTry");
 
-    const img=document.createElement("img");
+    if(
+        bestTime === null ||
+        timer < Number(bestTime)
+    ){
+        localStorage.setItem(
+            "bestTime",
+            timer
+        );
 
-    img.src="images/"+card.dataset.image;
+        bestTime = timer;
+    }
 
-    card.appendChild(img);
+    if(
+        bestTry === null ||
+        tries < Number(bestTry)
+    ){
+        localStorage.setItem(
+            "bestTry",
+            tries
+        );
 
+        bestTry = tries;
+    }
+
+    bestTimeDisplay.textContent =
+        formatTime(Number(bestTime));
+
+    bestTryDisplay.textContent =
+        bestTry + "回";
 }
 
-function closeCard(card){
+function finishGame(){
 
-    card.dataset.open="false";
+    stopTimer();
 
-    card.innerHTML="";
+    const rank = getRank();
 
-    const back=document.createElement("div");
+    rankDisplay.textContent = rank + "ランク";
 
-    back.className="back";
+    rankDisplay.className = "";
 
-    back.textContent="?";
+    if(rank === "S"){
+        rankDisplay.classList.add("rankS");
+    }
+    else if(rank === "A"){
+        rankDisplay.classList.add("rankA");
+    }
+    else if(rank === "B"){
+        rankDisplay.classList.add("rankB");
+    }
+    else{
+        rankDisplay.classList.add("rankC");
+    }
 
-    card.appendChild(back);
+    finalTime.textContent =
+        formatTime(timer);
 
+    finalTry.textContent =
+        tries + "回";
+
+    updateBestRecord();
+
+    bgm.pause();
+
+    showScreen(resultScreen);
 }
 
-restart.addEventListener("click",createBoard);
+function startGame(){
 
-createBoard();
+    matchedPairs = 0;
+    tries = 0;
+
+    scoreDisplay.textContent = "0";
+    triesDisplay.textContent = "0";
+
+    firstCard = null;
+    secondCard = null;
+
+    lockBoard = false;
+
+    createBoard();
+
+    startTimer();
+
+    bgm.currentTime = 0;
+
+    bgm.play().catch(()=>{});
+
+    showScreen(gameScreen);
+}
+
+startButton.addEventListener("click",()=>{
+
+    startGame();
+
+});
+
+howButton.addEventListener("click",()=>{
+
+    showScreen(howScreen);
+
+});
+
+backTitle1.addEventListener("click",()=>{
+
+    showScreen(titleScreen);
+
+});
+
+backTitle2.addEventListener("click",()=>{
+
+    stopTimer();
+
+    bgm.pause();
+
+    showScreen(titleScreen);
+
+});
+
+backTitle3.addEventListener("click",()=>{
+
+    showScreen(titleScreen);
+
+});
+
+restartButton.addEventListener("click",()=>{
+
+    startGame();
+
+});
+
+playAgainButton.addEventListener("click",()=>{
+
+    startGame();
+
+});
+
+const savedBestTime =
+    localStorage.getItem("bestTime");
+
+const savedBestTry =
+    localStorage.getItem("bestTry");
+
+if(savedBestTime){
+
+    bestTimeDisplay.textContent =
+        formatTime(Number(savedBestTime));
+
+}else{
+
+    bestTimeDisplay.textContent =
+        "--:--";
+}
+
+if(savedBestTry){
+
+    bestTryDisplay.textContent =
+        savedBestTry + "回";
+
+}else{
+
+    bestTryDisplay.textContent =
+        "--";
+}
+
+showScreen(titleScreen);

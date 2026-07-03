@@ -4,38 +4,169 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>しろっぱ神経衰弱</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<div class="container">
+<!-- ========================= -->
+<!-- サウンド -->
+<!-- ========================= -->
 
-    <h1>🦷 しろっぱ神経衰弱 🦷</h1>
+<audio id="bgm" loop>
+    <source src="sounds/bgm.mp3" type="audio/mpeg">
+</audio>
 
-    <p class="message">
-        カードをクリックして同じしろっぱを見つけよう！
+<audio id="flipSound">
+    <source src="sounds/frip.mp3" type="audio/mpeg">
+</audio>
+
+<audio id="matchSound">
+    <source src="sounds/match.mp3" type="audio/mpeg">
+</audio>
+
+<!-- ========================= -->
+<!-- タイトル画面 -->
+<!-- ========================= -->
+
+<div id="titleScreen" class="screen">
+
+    <img src="images/title.png" class="titleImage">
+
+    <h1>🦷しろっぱ神経衰弱🦷</h1>
+
+    <p class="subTitle">
+        おなじしろっぱを見つけよう！
     </p>
 
+    <button id="startButton" class="mainButton">
+        🎮 ゲームスタート
+    </button>
+
+    <button id="howButton" class="subButton">
+        📖 あそびかた
+    </button>
+
+</div>
+
+<!-- ========================= -->
+<!-- あそびかた -->
+<!-- ========================= -->
+
+<div id="howScreen" class="screen hidden">
+
+    <h2>📖 あそびかた</h2>
+
+    <div class="howText">
+
+        <p>① カードを2枚めくります。</p>
+        <p>② 同じしろっぱなら成功！</p>
+        <p>③ 全部そろえるとクリアです！</p>
+        <p>④ Sランクを目指そう！</p>
+
+    </div>
+
+    <button id="backTitle1" class="mainButton">
+        タイトルへ戻る
+    </button>
+
+</div>
+
+<!-- ========================= -->
+<!-- ゲーム画面 -->
+<!-- ========================= -->
+
+<div id="gameScreen" class="screen hidden">
+
+    <h1>🦷しろっぱ神経衰弱🦷</h1>
+
     <div class="info">
+
         <div>
-            そろえたペア：
-            <span id="score">0</span> / 6
+            ペア
+            <span id="score">0</span>
+            /8
         </div>
 
-        <button id="restart">
-            もう一度遊ぶ
-        </button>
+        <div>
+            試行回数
+            <span id="tries">0</span>
+        </div>
+
+        <div>
+            時間
+            <span id="timer">00:00</span>
+        </div>
+
     </div>
 
     <div id="game"></div>
 
-    <div id="result" class="hidden">
+    <div class="buttons">
 
-        🎉 おめでとう！ 🎉<br>
+        <button id="restart" class="mainButton">
+            🔄 もう一度遊ぶ
+        </button>
 
-        全部そろったよ！
+        <button id="backTitle2" class="subButton">
+            🏠 タイトルへ
+        </button>
 
     </div>
+
+</div>
+
+<!-- ========================= -->
+<!-- クリア画面 -->
+<!-- ========================= -->
+
+<div id="resultScreen" class="screen hidden">
+
+    <h1>🎉おめでとう！！🎉</h1>
+
+    <img src="images/title.png" class="clearImage">
+
+    <h2>しろっぱマスター！</h2>
+
+    <div class="resultBox">
+
+        <p>
+            ⏱ 時間
+            <span id="finalTime"></span>
+        </p>
+
+        <p>
+            👆 試行回数
+            <span id="finalTry"></span>
+        </p>
+
+        <p>
+            🌟 ランク
+            <span id="rank"></span>
+        </p>
+
+        <hr style="margin:15px 0;">
+
+        <p>
+            🏆 ベストタイム
+            <span id="bestTime"></span>
+        </p>
+
+        <p>
+            🏆 ベスト試行
+            <span id="bestTry"></span>
+        </p>
+
+    </div>
+
+    <button id="playAgain" class="mainButton">
+        もう一度遊ぶ
+    </button>
+
+    <button id="backTitle3" class="subButton">
+        タイトルへ戻る
+    </button>
 
 </div>
 
